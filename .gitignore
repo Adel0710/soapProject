@@ -400,3 +400,6 @@ FodyWeavers.xsd
 .gitignore
 /env
 /__pycache__
+
+.gitignore
+/.venv

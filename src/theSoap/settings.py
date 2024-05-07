@@ -41,9 +41,9 @@ INSTALLED_APPS = [
     'ap',
     'theSoap',
     'rest_framework',
-    'rest_framework_simplejwt',
-    'dj_rest_auth',
+    'rest_framework.routers',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt.authntification'
     'rest_framework.permissions',
 ]
 
