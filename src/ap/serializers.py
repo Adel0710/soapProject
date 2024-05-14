@@ -15,3 +15,10 @@ class UsersDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = '__all__'       
+        
+class LoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    lastname = serializers.CharField()
+    firstname = serializers.CharField() 
+
