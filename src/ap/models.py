@@ -1,7 +1,6 @@
 from django.db import models
-
-from django.db import models
-
+from django.contrib.auth.models import BaseUserManager 
+from django.contrib.auth.hashers import make_password
 
 class Cart(models.Model):
     content = models.IntegerField(blank=True, null=True)
@@ -54,15 +53,45 @@ class Roles(models.Model):
     class Meta:
         managed = False
         db_table = 'roles'
+        
+        
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None):
+        
+        if not email:
+            raise ValueError('L\'adresse e-mail est obligatoire')
+
+        user = self.model(
+            email=self.normalize_email(email),
+            
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password):
+      
+        user = self.create_user(
+            email,
+            password=password,
+        )
+        user.is_superuser = True
+        user.is_staff = True
+        user.save(using=self._db)
+        return user        
 
 
 class Users(models.Model):
-    lastname = models.CharField(max_length=100, blank=True, null=True)
+    
     firstname = models.CharField(max_length=100, blank=True, null=True)
+    lastname = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=255, blank=True, null=True)
-    purchase_number = models.IntegerField(blank=True, null=True)
-    password = models.CharField(max_length=255, blank=True, null=True)
-    role_id = models.IntegerField()
+    password = models.CharField(max_length=255, blank=False, null=False)
+    role_id = models.IntegerField(null=False, default=1)
+    
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
 
     class Meta:
         managed = False

@@ -1,45 +1,63 @@
 from rest_framework import viewsets
+import logging
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate
+from django.http import HttpResponse, JsonResponse
+from django.contrib.auth import get_user_model
 from .models import Users, Products
 from .serializers import UsersSerializer, ProductsSerializer, LoginSerializer
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 import jwt
 
-class CreateUserView(APIView):
-    def post(self, request):
-        lastname = request.data.get('lastname')
-        firstname = request.data.get('firstname')
-        email = request.data.get('email')
-        password = make_password(request.data.get('password'))
+def index(request):
+    return HttpResponse("Bonjour")
 
-        try:
-            user = Users.objects.create(
-                lastname=lastname,
-                firstname=firstname,
-                email=email,
-                password=password
-            )
-            user.save()
-            return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CreateUserView(APIView):
+    permission_classes = [AllowAny]
+
+    @csrf_exempt
+    def get(self, request, *args, **kwargs):
+        User = get_user_model()
+        users = User.objects.all()
+        serializer = UsersSerializer(users, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        serializer = UsersSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                user = serializer.save()
+                return JsonResponse({"message": "User successfully created"}, status=201)
+            except Exception as e:
+                logging.error(f"Error creating user: {e}")
+                return JsonResponse({"error": str(e)}, status=400)
+        else:
+            return JsonResponse({"errors": serializer.errors}, status=400)
+   
 
 class ReadUsersView(APIView):
-    # permission_classes = [IsAuthenticated]
+   authentication_classes = [JWTAuthentication]
+permission_classes = [IsAuthenticated] 
 
-    def get(self, request):
-        if request.user.role_id == 2:
-            users = Users.objects.all()
-            serializer = UsersSerializer(users, many=True)
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'You don\'t have access.'}, status=status.HTTP_403_FORBIDDEN)
+def get(self, request):
+      
+        users = Users.objects.all()
+        serializer = UsersSerializer(users, many=True)
+        return JsonResponse(serializer.data)
+        # else:
+        #     return Response({'error': 'You don\'t have access.'}, status=status.HTTP_403_FORBIDDEN)
 
 class UpdateUserView(APIView):
     def put(self, request, id):
@@ -55,22 +73,22 @@ class UpdateUserView(APIView):
             user.email = email
             user.password = password
             user.save()
-            return Response({'message': 'User updated successfully'})
+            return JsonResponse({'message': 'User updated successfully'})
         except Users.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'error': 'User not found'}, status=404)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({'error': str(e)}, status=500)
 
 class DeleteUserView(APIView):
     def delete(self, request, id):
         try:
             user = Users.objects.get(id=id)
             user.delete()
-            return Response({'message': 'User deleted successfully'})
+            return JsonResponse({'message': 'User deleted successfully'})
         except Users.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'error': 'User not found'}, status=404)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({'error': str(e)}, status=500)
 
 class CreateProductView(APIView):
     def post(self, request):
@@ -87,17 +105,17 @@ class CreateProductView(APIView):
                     price=price
                 )
                 product.save()
-                return Response({'message': 'Product created successfully'}, status=status.HTTP_201_CREATED)
+                return JsonResponse({'message': 'Product created successfully'}, status=201)
             except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return JsonResponse({'error': str(e)}, status=500)
         else:
-            return Response({'error': 'You don\'t have access.'}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse({'error': 'You don\'t have access.'}, status=403)
 
 class ReadProductView(APIView):
     def get(self, request):
         products = Products.objects.all()
         serializer = ProductsSerializer(products, many=True)
-        return Response(serializer.data)
+        return JsonResponse(serializer.data)
 
 class UpdateProductView(APIView):
     def put(self, request, id):
@@ -113,13 +131,13 @@ class UpdateProductView(APIView):
                 product.description = description
                 product.price = price
                 product.save()
-                return Response({'message': 'Product updated successfully'})
+                return JsonResponse({'message': 'Product updated successfully'})
             except Products.DoesNotExist:
-                return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+                return JsonResponse({'error': 'Product not found'}, status=404)
             except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return JsonResponse({'error': str(e)}, status=500)
         else:
-            return Response({'error': 'You don\'t have access.'}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse({'error': 'You don\'t have access.'}, status=403)
 
 class DeleteProductView(APIView):
     def delete(self, request, id, roles):
@@ -127,13 +145,13 @@ class DeleteProductView(APIView):
             try:
                 product = Products.objects.get(id=id)
                 product.delete()
-                return Response({'message': 'Product deleted successfully'})
+                return JsonResponse({'message': 'Product deleted successfully'})
             except Products.DoesNotExist:
-                return Response({'error': 'Product not found'}, status=status.HTTP_404_NOTFOUND)
+                return JsonResponse({'error': 'Product not found'}, status=404)
             except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return JsonResponse({'error': str(e)}, status=500)
         else:
-            return Response({'error': 'You don\'t have access.'}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse({'error': 'You don\'t have access.'}, status=403)
 
 class LoginView(APIView):
     def post(self, request):
@@ -146,14 +164,14 @@ class LoginView(APIView):
         
         if user:
             token = jwt.encode({'user_id': user.id}, settings.SECRET_KEY, algorithm='HS256')
-            response = Response({'token': token})
+            response = JsonResponse({'token': token})
             response.set_cookie('token', token)  
             return response
         else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return JsonResponse({'error': 'Invalid credentials'}, status='à&')
 
 class LogoutView(APIView):
     def post(self, request):
-        response = Response({'message': 'Logged out successfully'})
+        response =JsonResponse({'message': 'Logged out successfully'})
         response.delete_cookie('token') 
         return response
