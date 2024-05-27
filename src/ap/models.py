@@ -40,19 +40,14 @@ class Products(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     price = models.IntegerField(blank=True, null=True)
     image = models.TextField(blank=True, null=True)
+    isAdmin = models.BooleanField(default=False)
 
     class Meta:
         managed = False
         db_table = 'products'
 
 
-class Roles(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=100, blank=True, null=True)
 
-    class Meta:
-        managed = False
-        db_table = 'roles'
         
         
 class UserManager(BaseUserManager):
@@ -88,7 +83,7 @@ class Users(models.Model):
     lastname = models.CharField(max_length=100, blank=True, null=True)
     email = models.CharField(max_length=255, blank=True, null=True)
     password = models.CharField(max_length=255, blank=False, null=False)
-    role_id = models.IntegerField(null=False, default=1)
+    isAdmin = models.BooleanField(default=False)
     
     def set_password(self, raw_password):
         self.password = make_password(raw_password)

@@ -398,8 +398,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 .gitignore
-/env
+/.env
 /__pycache__
 
-.gitignore
-/.venv

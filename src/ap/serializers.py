@@ -5,7 +5,7 @@ from .models import Users, Products
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'firstname', 'lastname', 'email', 'password', 'role_id']
+        fields = ['id', 'firstname', 'lastname', 'email', 'password', 'isAdmin']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -28,5 +28,5 @@ class UsersDetailsSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['lastname', 'firstname','email', 'password']
+        fields = ['email', 'password']
 

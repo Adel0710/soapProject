@@ -1,100 +1,47 @@
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+CREATE DATABASE IF NOT EXISTS soap;
+USE soap;
 
-CREATE DATABASE IF NOT EXISTS soap
-USE soap,
-
-
-
-CREATE TABLE IF NOT EXISTS `cart` (
-  `id` int(11) NOT NULL,
-  `content` int(11) DEFAULT NULL,
-  `price` int(11) DEFAULT NULL,
-  `date_of_order` date DEFAULT NULL
+CREATE TABLE IF NOT EXISTS cart (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  product_id INT DEFAULT NULL,
+  total_price DECIMAL(10,2) DEFAULT NULL,
+  date_of_order DATE DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
-
-CREATE TABLE IF NOT EXISTS `orders` (
-  `id` int(11) NOT NULL,
-  `produit` int(11) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `order_date` date DEFAULT NULL,
-  `price` int(11) DEFAULT NULL
+CREATE TABLE IF NOT EXISTS orders (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT DEFAULT NULL,
+  order_date DATE DEFAULT NULL,
+  total_price DECIMAL(10,2) DEFAULT NULL,
+  status ENUM('pending', 'shipped', 'delivered') DEFAULT 'pending',
+  payment_method VARCHAR(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
-CREATE TABLE IF NOT EXISTS `products` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `price` int(11) DEFAULT NULL,
-  `image` blob DEFAULT NULL
+CREATE TABLE IF NOT EXISTS products (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) DEFAULT NULL,
+  description VARCHAR(255) DEFAULT NULL,
+  price DECIMAL(10,2) DEFAULT NULL,
+  image LONGBLOB DEFAULT NULL,
+  category VARCHAR(100) DEFAULT NULL,
+  stock INT DEFAULT 0,
+  ean VARCHAR(13) DEFAULT NULL,
+  brand VARCHAR(100) DEFAULT NULL,
+  isAdmin BOOLEAN DEFAULT FALSE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
-
-CREATE TABLE IF NOT EXISTS `roles` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) DEFAULT NULL
+CREATE TABLE IF NOT EXISTS users (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  firstname VARCHAR(100) DEFAULT NULL,
+  lastname VARCHAR(100) DEFAULT NULL,
+  email VARCHAR(255) DEFAULT NULL,
+  password VARCHAR(255) DEFAULT NULL,
+  isAdmin BOOLEAN DEFAULT FALSE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
-
-CREATE TABLEIF NOT EXISTS `users` (
-  `id` int(11) NOT NULL,
-  `lastname` varchar(100) DEFAULT NULL,
-  `firstname` varchar(100) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `purchase_number` int(11) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `role_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
-ALTER TABLE `cart`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `content_id` (`content`);
-
-
-
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `cart_id` (`produit`);
-
-
-
-ALTER TABLE `roles`
-  ADD PRIMARY KEY (`id`);
-
-
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `role_id` (`role_id`);
-
-
-ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-
-
-
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `cart`
-  ADD CONSTRAINT `content_id` FOREIGN KEY (`content`) REFERENCES `products` (`id`);
-
-
-ALTER TABLE `orders`
-  ADD CONSTRAINT `cart_id` FOREIGN KEY (`produit`) REFERENCES `cart` (`id`),
-  ADD CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-
-
-
-
-ALTER TABLE `users`
-  ADD CONSTRAINT `role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
-COMMIT;
+CREATE INDEX idx_cart_product_id ON cart (product_id);
+CREATE INDEX idx_cart_date_of_order ON cart (date_of_order);
+CREATE INDEX idx_orders_user_id ON orders (user_id);
+CREATE INDEX idx_orders_order_date ON orders (order_date);
+CREATE INDEX idx_products_name ON products (name);
+CREATE INDEX idx_products_description ON products (description);
