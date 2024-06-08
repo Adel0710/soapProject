@@ -91,3 +91,16 @@ class Users(models.Model):
     class Meta:
         managed = False
         db_table = 'users'
+
+def get_user_data(user_id):
+    """Récupère les données de l'utilisateur à partir de l'ID de l'utilisateur."""
+    try:
+        user = Users.objects.get(id=user_id)
+        return {
+            'id': user.id,
+            'email': user.email,
+            'password': user.password
+            
+        }
+    except Users.DoesNotExist:
+        raise Exception('Utilisateur non trouvé')
