@@ -12,11 +12,7 @@ class Cart(models.Model):
         db_table = 'cart'
 
 
-class Extras(models.Model):
-    id = models.IntegerField(primary_key=True)
-    nom = models.CharField(max_length=100, blank=True, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    price = models.IntegerField(blank=True, null=True)
+
 
     class Meta:
         managed = False
@@ -78,13 +74,12 @@ class UserManager(BaseUserManager):
 
 
 class Users(models.Model):
-    
     firstname = models.CharField(max_length=100, blank=True, null=True)
     lastname = models.CharField(max_length=100, blank=True, null=True)
-    email = models.CharField(max_length=255, blank=True, null=True)
-    password = models.CharField(max_length=255, blank=False, null=False)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
     isAdmin = models.BooleanField(default=False)
-    
+
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
 

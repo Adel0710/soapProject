@@ -1,35 +1,36 @@
-from django.conf import settings
-from datetime import datetime, timedelta
+from datetime import datetime
 import jwt
+from django.conf import settings
+from .models import Users
 
 def generate_access_token(user_id):
-    expiration_time = datetime.utcnow() + timedelta(days=1)  
+    expiration_time = datetime.utcnow() + settings.JWT_ACCESS_TOKEN_EXPIRES
     payload = {
         'user_id': user_id,
         'exp': expiration_time,
-        'iat': datetime.utcnow(),  
+        'iat': datetime.utcnow(),
         'token_type': 'access'
     }
-    print("Playload:",payload)
-    access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-    print(access_token)
-    return access_token.decode('utf-8')
-
+    access_token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return access_token
 
 def validate_access_token(token):
-    
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        user_id = payload['user_id']
-        expiration = payload['exp']
-
-        if expiration < datetime.utcnow():
-            raise Exception("Jeton d'accès expiré")
-
-        return user_id
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        return payload['user_id']
     except jwt.ExpiredSignatureError:
-        raise Exception("Jeton d'accès expiré")
+        raise Exception("Token has expired")
     except jwt.InvalidTokenError:
-        raise Exception("Jeton d'accès non valide")
-    except KeyError:
-        raise Exception("Jeton d'accès malformé")
+        raise Exception("Invalid token")
+
+def get_user_from_token(request):
+    token = request.headers.get('Authorization')
+    if token:
+        try:
+            token = token.split(' ')[1]
+            user_id = validate_access_token(token)
+            user = Users.objects.get(id=user_id)
+            return user
+        except Exception as e:
+            return None
+    return None
